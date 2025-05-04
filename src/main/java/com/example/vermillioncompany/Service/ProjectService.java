@@ -2,7 +2,6 @@ package com.example.vermillioncompany.Service;
 
 import com.example.vermillioncompany.Model.Project;
 import com.example.vermillioncompany.Repository.ProjectRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,38 +10,39 @@ import java.util.Optional;
 @Service
 public class ProjectService {
 
-    private final ProjectRepo projectRepository;
+    private final ProjectRepo projectRepo;
 
-    @Autowired
-    public ProjectService(ProjectRepo projectRepository) {
-        this.projectRepository = projectRepository;
+    public ProjectService(ProjectRepo projectRepo) {
+        this.projectRepo = projectRepo;
     }
 
     public List<Project> getAllProjects() {
-        return projectRepository.findAll();
+        return projectRepo.findAll();
     }
 
     public Optional<Project> getProjectById(Long id) {
-        return projectRepository.findById(id);
+        return projectRepo.findById(id);
     }
 
     public Project createProject(Project project) {
-        return projectRepository.save(project);
+        return projectRepo.save(project);
     }
 
     public Project updateProject(Long id, Project updatedProject) {
-        return projectRepository.findById(id).map(project -> {
-            project.setProjectName(updatedProject.getProjectName());
-            project.setClient(updatedProject.getClient());
-            project.setProjectManager(updatedProject.getProjectManager());
-            project.setStartDate(updatedProject.getStartDate());
-            project.setEndDate(updatedProject.getEndDate());
-            project.setBudget(updatedProject.getBudget());
-            return projectRepository.save(project);
-        }).orElseThrow(() -> new RuntimeException("Проект не найден с id: " + id));
+        return projectRepo.findById(id)
+                .map(existing -> {
+                    existing.setProjectName(updatedProject.getProjectName());
+                    existing.setStartDate(updatedProject.getStartDate());
+                    existing.setEndDate(updatedProject.getEndDate());
+                    existing.setBudget(updatedProject.getBudget());
+                    existing.setClient(updatedProject.getClient());
+                    existing.setProjectManager(updatedProject.getProjectManager());
+                    return projectRepo.save(existing);
+                })
+                .orElseThrow(() -> new RuntimeException("Project not found"));
     }
 
     public void deleteProject(Long id) {
-        projectRepository.deleteById(id);
+        projectRepo.deleteById(id);
     }
 }

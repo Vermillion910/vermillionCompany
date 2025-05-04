@@ -2,45 +2,60 @@ package com.example.vermillioncompany.Controller;
 
 import com.example.vermillioncompany.Model.Project;
 import com.example.vermillioncompany.Service.ProjectService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
-@RestController
-@RequestMapping("/api/projects")
+@Controller
+@RequestMapping("/projects")
 public class ProjectController {
 
     private final ProjectService projectService;
 
-    @Autowired
-    public ProjectController(ProjectService projectService) {
-        this.projectService = projectService;
+    public ProjectController(ProjectService svc) {
+        this.projectService = svc;
     }
 
+    // 1) GET — список проектов
     @GetMapping
-    public List<Project> getAllProjects() {
-        return projectService.getAllProjects();
+    public String listProjects(Model model) {
+        model.addAttribute("projects", projectService.getAllProjects());
+        return "projects/list";              // thymeleaf-шаблон projects/list.html
     }
 
-    @GetMapping("/{id}")
-    public Optional<Project> getProjectById(@PathVariable Long id) {
-        return projectService.getProjectById(id);
+    // 2) GET — форма создания
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("project", new Project());
+        return "projects/form";              // projects/form.html
     }
 
+    // 3) POST — создание + PRG: редирект на список
     @PostMapping
-    public Project createProject(@RequestBody Project project) {
-        return projectService.createProject(project);
+    public String createProject(@ModelAttribute Project project) {
+        projectService.createProject(project);
+        return "redirect:/projects";         // PRG: редирект на GET /projects
     }
 
-    @PutMapping("/{id}")
-    public Project updateProject(@PathVariable Long id, @RequestBody Project project) {
-        return projectService.updateProject(id, project);
+    // 4) GET — форма редактирования
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        model.addAttribute("project", projectService.getProjectById(id)
+                .orElseThrow(() -> new RuntimeException("Not found")));
+        return "projects/form";
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteProject(@PathVariable Long id) {
+    // 5) POST — обновление + PRG
+    @PostMapping("/{id}")
+    public String updateProject(@PathVariable Long id, @ModelAttribute Project project) {
+        projectService.updateProject(id, project);
+        return "redirect:/projects";
+    }
+
+    // 6) POST — удаление + PRG
+    @PostMapping("/{id}/delete")
+    public String deleteProject(@PathVariable Long id) {
         projectService.deleteProject(id);
+        return "redirect:/projects";
     }
 }

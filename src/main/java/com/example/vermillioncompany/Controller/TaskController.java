@@ -2,42 +2,53 @@ package com.example.vermillioncompany.Controller;
 
 import com.example.vermillioncompany.Model.Task;
 import com.example.vermillioncompany.Service.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
-@RestController
-@RequestMapping("/api/tasks")
+@Controller
+@RequestMapping("/tasks")
 public class TaskController {
 
-    private TaskService taskService;
-
-    @Autowired
+    private final TaskService taskService;
     public TaskController(TaskService taskService) {
         this.taskService = taskService;
     }
 
     @GetMapping
-    public List<Task> getAll() { return taskService.getAllTasks(); }
-    @GetMapping("/{id}") public Optional<Task> get(@PathVariable Long id) {
-        return taskService.getTaskById(id);
+    public String list(Model model) {
+        model.addAttribute("tasks", taskService.getAllTasks());
+        return "tasks/list";
+    }
+
+    @GetMapping("/new")
+    public String createForm(Model model) {
+        model.addAttribute("task", new Task());
+        return "tasks/form";
     }
 
     @PostMapping
-    public Task create(@RequestBody Task t) {
-        return taskService.createTask(t);
+    public String create(@ModelAttribute Task task) {
+        taskService.createTask(task);
+        return "redirect:/tasks";
     }
 
-    @PutMapping("/{id}")
-    public Task update(@PathVariable Long id, @RequestBody Task t) {
-        return taskService.updateTask(id, t);
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        model.addAttribute("task",
+                taskService.getTaskById(id).orElseThrow(() -> new RuntimeException("Not found")));
+        return "tasks/form";
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    @PostMapping("/{id}")
+    public String update(@PathVariable Long id, @ModelAttribute Task task) {
+        taskService.updateTask(id, task);
+        return "redirect:/tasks";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id) {
         taskService.deleteTask(id);
+        return "redirect:/tasks";
     }
 }
-

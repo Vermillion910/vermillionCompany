@@ -2,46 +2,53 @@ package com.example.vermillioncompany.Controller;
 
 import com.example.vermillioncompany.Model.Role;
 import com.example.vermillioncompany.Service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
 @Controller
-@RequestMapping("/api/roles")
+@RequestMapping("/roles")
 public class RoleController {
 
-    private RoleService rs;
-
-    @Autowired
-    public RoleController(RoleService rs) {
-        this.rs = rs;
+    private final RoleService roleService;
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
     }
 
     @GetMapping
-    public List<Role> all() {
-        return rs.getAllRoles();
+    public String list(Model model) {
+        model.addAttribute("roles", roleService.getAllRoles());
+        return "roles/list";
     }
 
-    @GetMapping("/{id}")
-    public Optional<Role> get(@PathVariable Long id) {
-        return rs.getRoleById(id);
+    @GetMapping("/new")
+    public String createForm(Model model) {
+        model.addAttribute("role", new Role());
+        return "roles/form";
     }
 
     @PostMapping
-    public Role create(@RequestBody Role r) {
-        return rs.createRole(r);
+    public String create(@ModelAttribute Role role) {
+        roleService.createRole(role);
+        return "redirect:/roles";
     }
 
-    @PutMapping("/{id}")
-    public Role update(@PathVariable Long id, @RequestBody Role r) {
-        return rs.updateRole(id, r);
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        model.addAttribute("role",
+                roleService.getRoleById(id).orElseThrow(() -> new RuntimeException("Not found")));
+        return "roles/form";
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        rs.deleteRole(id);
+    @PostMapping("/{id}")
+    public String update(@PathVariable Long id, @ModelAttribute Role role) {
+        roleService.updateRole(id, role);
+        return "redirect:/roles";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id) {
+        roleService.deleteRole(id);
+        return "redirect:/roles";
     }
 }

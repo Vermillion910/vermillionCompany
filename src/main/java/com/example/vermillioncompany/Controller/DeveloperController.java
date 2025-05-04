@@ -1,45 +1,54 @@
 package com.example.vermillioncompany.Controller;
+
 import com.example.vermillioncompany.Model.Developer;
 import com.example.vermillioncompany.Service.DeveloperService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
 @Controller
-@RequestMapping("/api/developers")
+@RequestMapping("/developers")
 public class DeveloperController {
 
-    private DeveloperService s;
-
-    @Autowired
-    public DeveloperController(DeveloperService s) {
-        this.s = s;
+    private final DeveloperService developerService;
+    public DeveloperController(DeveloperService developerService) {
+        this.developerService = developerService;
     }
 
     @GetMapping
-    public List<Developer> all() {
-        return s.getAllDevelopers();
+    public String list(Model model) {
+        model.addAttribute("developers", developerService.getAllDevelopers());
+        return "developers/list";
     }
 
-    @GetMapping("/{id}")
-    public Optional<Developer> get(@PathVariable Long id) {
-        return s.getDeveloperById(id);
+    @GetMapping("/new")
+    public String createForm(Model model) {
+        model.addAttribute("developer", new Developer());
+        return "developers/form";
     }
 
     @PostMapping
-    public Developer create(@RequestBody Developer d) {
-        return s.createDeveloper(d);
+    public String create(@ModelAttribute Developer developer) {
+        developerService.createDeveloper(developer);
+        return "redirect:/developers";
     }
 
-    @PutMapping("/{id}")
-    public Developer update(@PathVariable Long id, @RequestBody Developer d) {
-        return s.updateDeveloper(id, d);
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        model.addAttribute("developer",
+                developerService.getDeveloperById(id).orElseThrow(() -> new RuntimeException("Not found")));
+        return "developers/form";
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        s.deleteDeveloper(id);
+    @PostMapping("/{id}")
+    public String update(@PathVariable Long id, @ModelAttribute Developer developer) {
+        developerService.updateDeveloper(id, developer);
+        return "redirect:/developers";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id) {
+        developerService.deleteDeveloper(id);
+        return "redirect:/developers";
     }
 }

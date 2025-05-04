@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <div th:replace="~{layout :: head}"></div>
+</head>
+<body>
+<div th:replace="~{layout :: nav}"></div>
+
+<div th:fragment="content">
+  <div class="d-flex justify-content-between mb-4">
+    <h2>Clients</h2>
+    <a href="/clients/new" class="btn btn-primary">New Client</a>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Client Name</th>
+      <th>Contact Person</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="client : ${clients}">
+      <td th:text="${client.clientId}"></td>
+      <td th:text="${client.clientName}"></td>
+      <td th:text="${client.contactPerson}"></td>
+      <td th:text="${client.contactEmail}"></td>
+      <td th:text="${client.phoneNumber}"></td>
+      <td>
+        <a th:href="@{/clients/{id}/edit(id=${client.clientId})}" class="btn btn-sm btn-warning">Edit</a>
+        <form th:action="@{/clients/{id}/delete(id=${client.clientId})}" method="post" class="d-inline">
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
